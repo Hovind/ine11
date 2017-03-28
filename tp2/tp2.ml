@@ -52,15 +52,18 @@ let rec insere mot dico =
 	match (mot, dico) with
 	| ([], _)  -> dico
 	| (_, Vide) -> dico_de mot
-	| (c::cs, Entrees{ lettre = l ; fin = f; suite = s; sinon = sn; _ }) ->
+	| (c::cs, Entrees{ lettre = l ; fin = f; suite = s; sinon = sn }) ->
 		if c == l then
-			if cs == [] then Entries{ l; true; s; sn }
-			else Entreees{l; f; insere cs dico s; sn }
-		else Entrees{l; f; s; insere mot sn}
+			if cs == [] then
+				Entrees{ lettre = l; fin = true; suite = s; sinon = sn }
+			else
+				Entrees{ lettre = l; fin = f; suite = insere cs s; sinon = sn }
+		else
+			Entrees{ lettre = l; fin = f; suite = s; sinon = insere mot sn }
 ;;
 
-let rec lire_mot ch
-	let inp = input_line ch in
+let rec lire_mot ic =
+	let inp = input_line ic in
 	let rec str_to_list str =
 		let len = String.length str in
 		if len == 1 then
@@ -72,8 +75,8 @@ let rec lire_mot ch
 
 let rec existe mot dico =
 	match (mot, dico) with
-	| (_, Vide) -> false
-	| (c::cs, Entries{ lettre = l; fin = f; suite = s; sinon = sn } ->
+	| (_, Vide) | ([], _) -> false
+	| (c::cs, Entrees{ lettre = l; fin = f; suite = s; sinon = sn }) ->
 		if c == l then
 			if f then
 				true
@@ -84,42 +87,21 @@ let rec existe mot dico =
 ;;
 
 let main =
-	let ch =
-		open Sys.argv[1]
-	in
-	let dico =
-		fold_until_eof (fun dico -> insere (lire_mot canal) dico) Vide
-	in
-
+	let ic = open_in Sys.argv.(1) in
+	let dico = fold_until_eof (fun dico -> insere (lire_mot ic) dico) Vide in
 	try
 		while true do
 			let li = read_line () in
+			let mot = explode li in
 			if existe mot dico then
-				print_string "Oui;
+				print_endline "Oui"
 			else
-				print_string "Non";
-				
-			print_newline ()
+				print_endline "Non"
 		done
-	with End_of_file -> ();
-	print_string "Bye\n";
-	exit 0
+	with End_of_file ->
+		close_in_noerr ic;
+		print_endline "Bye";
+		exit 0
 ;;
-	
 
-(*
-let main =
-	let dict =
-		get_dict Sys.argv[1]
-	in
-	try
-		while true do
-			let li = read_line () in
-			print_string (find_in dict li);
-			print_newline ()
-		done
-	with End_of_file -> ();
-	print_string "Bye\n";
-	exit 0;;
-
-main;; *)
+main;;
