@@ -50,27 +50,20 @@ let rec dico_de mot =
 
 let rec insere mot dico =
 	match (mot, dico) with
-	| ([], _)  -> dico
 	| (_, Vide) -> dico_de mot
+	| ([], _)  -> dico
 	| (c::cs, Entrees{ lettre = l ; fin = f; suite = s; sinon = sn }) ->
 		if c == l then
-			if cs == [] then
-				Entrees{ lettre = l; fin = true; suite = s; sinon = sn }
-			else
-				Entrees{ lettre = l; fin = f; suite = insere cs s; sinon = sn }
-		else
-			Entrees{ lettre = l; fin = f; suite = s; sinon = insere mot sn }
+		begin
+			if cs == [] then Entrees{ lettre = l; fin = true; suite = s; sinon = sn }
+			else Entrees{ lettre = l; fin = f; suite = insere cs s; sinon = sn }
+		end
+		else Entrees{ lettre = l; fin = f; suite = s; sinon = insere mot sn }
 ;;
 
 let rec lire_mot ic =
 	let inp = input_line ic in
-	let rec str_to_list str =
-		let len = String.length str in
-		if len == 1 then
-			[str.[0]]
-		else
-			str.[0]::str_to_list (String.sub str 1 (len - 1))
-	in str_to_list inp 
+	explode inp
 ;;
 
 let rec existe mot dico =
@@ -78,17 +71,28 @@ let rec existe mot dico =
 	| (_, Vide) | ([], _) -> false
 	| (c::cs, Entrees{ lettre = l; fin = f; suite = s; sinon = sn }) ->
 		if c == l then
-			if f then
-				true
-			else	
-				existe cs s
-		else
-			existe mot sn
+		begin
+			if f && cs == [] then true
+			else existe cs s
+		end
+		else existe mot sn
+;;
+let print_dico dico =
+	let rec printmd mot dico =
+		match dico with
+		| Vide -> ()
+		| Entrees{ lettre = l; fin = f; suite = s; sinon = sn } ->
+			let nmot = mot ^ String.make 1 l in
+			if f then print_endline nmot;
+			printmd nmot s;
+			printmd mot sn
+	in printmd "" dico
 ;;
 
-let main =
+let () =
 	let ic = open_in Sys.argv.(1) in
 	let dico = fold_until_eof (fun dico -> insere (lire_mot ic) dico) Vide in
+	print_dico dico;
 	try
 		while true do
 			let li = read_line () in
@@ -103,5 +107,3 @@ let main =
 		print_endline "Bye";
 		exit 0
 ;;
-
-main;;
