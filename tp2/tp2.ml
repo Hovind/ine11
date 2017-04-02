@@ -56,8 +56,7 @@ let rec taille dico =
 ;;
 
 let rec insere mot dico =
-	match (mot, dico) with
-	| (_, Vide) -> dico_de mot
+	match (mot, dico) with | (_, Vide) -> dico_de mot
 	| ([], _)  -> dico
 	| (c::cs, Entrees{ lettre = l ; fin = f; suite = s; sinon = sn }) ->
 		if c == l then
@@ -68,7 +67,7 @@ let rec insere mot dico =
 		else Entrees{ lettre = l; fin = f; suite = s; sinon = insere mot sn }
 ;;
 
-let rec lire_mot ic =
+let lire_mot ic =
 	let inp = input_line ic in
 	explode inp
 ;;
@@ -106,35 +105,35 @@ let rec imprime_dico n prfx dico =
 		imprime_dico o prfx sinon
 ;;
 
-let recherche cs d =
-	if existe cs d then None
-	else None
-
-let rec recherche cs d =
-	match (cs, d) with
+let rec recherche mot d =
+	match (mot, d) with
 	| (_, Vide) | ([], _) -> None
 	| (c::cs, Entrees{ lettre; fin; suite; sinon }) ->
 		if c == lettre then
 		begin
 			if fin && cs == [] then Some Vide
-			else if cs == [] then Some Mots{}
-			else existe cs suite
+			else if cs == [] then Some suite
+			else recherche cs suite
 		end
-		else existe mot sinon
+		else recherche mot sinon
 ;;
+
 let _ =
 	let ic = open_in Sys.argv.(1) in
 	let dico = fold_until_eof (fun dico -> insere (lire_mot ic) dico) Vide in
-	imprime_dico 10 [] dico;
 	try
 		while true do
-			let _ = print_string "Chercher: " in
-			let li = read_line () in
-			let mot = explode li in
-			if existe mot dico then
-				print_endline "Oui"
-			else
-				print_endline "Non"
+			print_string "Chercher: ";
+			flush stdout;
+			let mot = lire_mot stdin in
+			match recherche mot dico with
+			| None -> print_endline "Non"
+			| Some Vide -> print_endline "Oui"
+			| Some suite ->
+					let n = taille suite in
+					let _ = if n == 1 then print_string "Il s'agit peut-être de: "
+					else (print_string "Il y a "; print_int n; print_endline " mots commencant par ce préfixe: ") in
+					ignore (imprime_dico 10 mot suite)
 		done
 	with End_of_file ->
 		close_in_noerr ic;
