@@ -48,6 +48,13 @@ let rec dico_de mot =
 		sinon = Vide }
 ;;
 
+let rec taille dico =
+	match dico with
+	| Vide -> 0
+	| Entrees{ lettre; fin; suite; sinon } ->
+		(if fin then 1 else 0) + taille suite + taille sinon
+;;
+
 let rec insere mot dico =
 	match (mot, dico) with
 	| (_, Vide) -> dico_de mot
@@ -89,7 +96,23 @@ let print_dico dico =
 	in printmd "" dico
 ;;
 
-let () =
+let rec imprime_dico n prfx dico =
+	match dico, n with
+	| (Vide, _) | (_, 0) -> ()
+	| (Entrees{ lettre; fin; suite; sinon }, _) ->
+		let prfxlettre = List.append prfx [lettre] in
+		let n =
+			if fin then (print_endline (implode prfxlettre); n-1)
+			else n in
+		imprime_dico n prfxlettre suite;
+		imprime_dico n prfx sinon
+;;
+
+let recherche cs d =
+	if existe cs d then None
+	else None
+
+let _ =
 	let ic = open_in Sys.argv.(1) in
 	let dico = fold_until_eof (fun dico -> insere (lire_mot ic) dico) Vide in
 	print_dico dico;
