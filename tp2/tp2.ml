@@ -76,13 +76,13 @@ let rec lire_mot ic =
 let rec existe mot dico =
 	match (mot, dico) with
 	| (_, Vide) | ([], _) -> false
-	| (c::cs, Entrees{ lettre = l; fin = f; suite = s; sinon = sn }) ->
-		if c == l then
+	| (c::cs, Entrees{ lettre; fin; suite; sinon }) ->
+		if c == lettre then
 		begin
-			if f && cs == [] then true
-			else existe cs s
+			if fin && cs == [] then true
+			else existe cs suite
 		end
-		else existe mot sn
+		else existe mot sinon
 ;;
 let print_dico dico =
 	let rec printmd mot dico =
@@ -98,26 +98,37 @@ let print_dico dico =
 
 let rec imprime_dico n prfx dico =
 	match dico, n with
-	| (Vide, _) | (_, 0) -> ()
+	| (Vide, _) | (_, 0) -> n
 	| (Entrees{ lettre; fin; suite; sinon }, _) ->
 		let prfxlettre = List.append prfx [lettre] in
-		let n =
-			if fin then (print_endline (implode prfxlettre); n-1)
-			else n in
-		imprime_dico n prfxlettre suite;
-		imprime_dico n prfx sinon
+		let m =	if fin then (print_endline (implode prfxlettre); n-1) else n in
+		let o = imprime_dico m prfxlettre suite in
+		imprime_dico o prfx sinon
 ;;
 
 let recherche cs d =
 	if existe cs d then None
 	else None
 
+let rec recherche cs d =
+	match (cs, d) with
+	| (_, Vide) | ([], _) -> None
+	| (c::cs, Entrees{ lettre; fin; suite; sinon }) ->
+		if c == lettre then
+		begin
+			if fin && cs == [] then Some Vide
+			else if cs == [] then Some Mots{}
+			else existe cs suite
+		end
+		else existe mot sinon
+;;
 let _ =
 	let ic = open_in Sys.argv.(1) in
 	let dico = fold_until_eof (fun dico -> insere (lire_mot ic) dico) Vide in
-	print_dico dico;
+	imprime_dico 10 [] dico;
 	try
 		while true do
+			let _ = print_string "Chercher: " in
 			let li = read_line () in
 			let mot = explode li in
 			if existe mot dico then
