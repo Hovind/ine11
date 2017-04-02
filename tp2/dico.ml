@@ -72,29 +72,6 @@ let lire_mot ic =
 	explode inp
 ;;
 
-let rec existe mot dico =
-	match (mot, dico) with
-	| (_, Vide) | ([], _) -> false
-	| (c::cs, Entrees{ lettre; fin; suite; sinon }) ->
-		if c == lettre then
-		begin
-			if fin && cs == [] then true
-			else existe cs suite
-		end
-		else existe mot sinon
-;;
-let print_dico dico =
-	let rec printmd mot dico =
-		match dico with
-		| Vide -> ()
-		| Entrees{ lettre = l; fin = f; suite = s; sinon = sn } ->
-			let nmot = mot ^ String.make 1 l in
-			if f then print_endline nmot;
-			printmd nmot s;
-			printmd mot sn
-	in printmd "" dico
-;;
-
 let rec imprime_dico n prfx dico =
 	match dico, n with
 	| (Vide, _) | (_, 0) -> n
