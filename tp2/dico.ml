@@ -38,9 +38,8 @@ let fold_until_eof f accu =
 	!result
 ;;
 
-let rec dico_de mot =
-	match mot with
-	| []    -> Vide
+let rec dico_de = function
+ 	  []    -> Vide
 	| c::cs -> Entrees{
 		lettre = c;
 		fin = cs == [];
@@ -48,9 +47,8 @@ let rec dico_de mot =
 		sinon = Vide }
 ;;
 
-let rec taille dico =
-	match dico with
-	| Vide -> 0
+let rec taille = function
+	   Vide -> 0
 	| Entrees{ lettre; fin; suite; sinon } ->
 		(if fin then 1 else 0) + taille suite + taille sinon
 ;;
@@ -58,13 +56,16 @@ let rec taille dico =
 let rec insere mot dico =
 	match (mot, dico) with | (_, Vide) -> dico_de mot
 	| ([], _)  -> dico
-	| (c::cs, Entrees{ lettre = l ; fin = f; suite = s; sinon = sn }) ->
+	| (c::cs, Entrees{ lettre; fin; suite; sinon }) ->
 		if c == l then
 		begin
-			if cs == [] then Entrees{ lettre = l; fin = true; suite = s; sinon = sn }
-			else Entrees{ lettre = l; fin = f; suite = insere cs s; sinon = sn }
+			if cs == [] then Entrees{ lettre = lettre; fin = true; suite = suite;
+			sinon = sinon }
+			else Entrees{ lettre = lettre; fin = fin; suite = insere cs suite; sinon =
+			sinon }
 		end
-		else Entrees{ lettre = l; fin = f; suite = s; sinon = insere mot sn }
+		else Entrees{ lettre = lettre; fin = fin; suite = suite; sinon = insere mot
+		sinon }
 ;;
 
 let lire_mot ic =
