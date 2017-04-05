@@ -58,13 +58,13 @@ let rec taille dico =
 let rec insere mot dico =
 	match (mot, dico) with | (_, Vide) -> dico_de mot
 	| ([], _)  -> dico
-	| (c::cs, Entrees{ lettre = l ; fin = f; suite = s; sinon = sn }) ->
-		if c == l then
+	| (c::cs, Entrees{ lettre; fin; suite; sinon }) ->
+		if c == lettre then
 		begin
-			if cs == [] then Entrees{ lettre = l; fin = true; suite = s; sinon = sn }
-			else Entrees{ lettre = l; fin = f; suite = insere cs s; sinon = sn }
+			if cs == [] then Entrees{ lettre = lettre; fin = true; suite = suite; sinon = sinon }
+			else Entrees{ lettre = lettre; fin = fin; suite = insere cs suite; sinon = sinon }
 		end
-		else Entrees{ lettre = l; fin = f; suite = s; sinon = insere mot sn }
+		else Entrees{ lettre = lettre; fin = fin; suite = suite; sinon = insere mot sinon }
 ;;
 
 let lire_mot ic =
@@ -72,18 +72,18 @@ let lire_mot ic =
 	explode inp
 ;;
 
-let rec imprime_dico n prfx dico =
+let rec imprime_dico n mot dico =
 	match dico, n with
 	| (Vide, _) | (_, 0) -> n
 	| (Entrees{ lettre; fin; suite; sinon }, _) ->
-		let prfxlettre = List.append prfx [lettre] in
-		let m =	if fin then (print_endline (implode prfxlettre); n-1) else n in
-		let o = imprime_dico m prfxlettre suite in
-		imprime_dico o prfx sinon
+		let motlettre = List.append mot [lettre] in
+		let m =	if fin then (print_endline (implode motlettre); n - 1) else n in
+		let o = imprime_dico m motlettre suite in
+		imprime_dico o mot sinon
 ;;
 
-let rec recherche mot d =
-	match (mot, d) with
+let rec recherche mot dico =
+	match mot, dico with
 	| (_, Vide) | ([], _) -> None
 	| (c::cs, Entrees{ lettre; fin; suite; sinon }) ->
 		if c == lettre then
@@ -108,8 +108,12 @@ let _ =
 			| Some Vide -> print_endline "Oui"
 			| Some suite ->
 					let n = taille suite in
-					let _ = if n == 1 then print_string "Il s'agit peut-être de: "
-					else (print_string "Il y a "; print_int n; print_endline " mots commencant par ce préfixe: ") in
+					let _ = if n == 1 then
+						print_string "Il s'agit peut-être de: "
+					else
+						(print_string "Il y a ";
+						print_int n;
+						print_endline " mots commencant par ce préfixe: ") in
 					ignore (imprime_dico 10 mot suite)
 		done
 	with End_of_file ->
